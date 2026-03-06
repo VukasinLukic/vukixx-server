@@ -12,7 +12,12 @@ function initFirebase() {
 
   let serviceAccount: ServiceAccount;
   try {
-    serviceAccount = JSON.parse(serviceAccountJson);
+    const parsed = JSON.parse(serviceAccountJson);
+    // Fix private key: env vars often escape \n as literal characters
+    if (parsed.private_key) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+    }
+    serviceAccount = parsed;
   } catch {
     console.error('FIREBASE_SERVICE_ACCOUNT is not valid JSON!');
     process.exit(1);
