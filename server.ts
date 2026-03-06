@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { classifyWithGemini, classifyWithOllama } from './classifier';
-import { savePrompt, getRecentPrompts, getPromptById } from './storage';
+import { classifyWithGemini, classifyWithOllama } from './classifier.js';
+import { savePrompt, getRecentPrompts, getPromptById } from './storage.js';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3777');

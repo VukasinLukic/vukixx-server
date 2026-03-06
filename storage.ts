@@ -1,6 +1,6 @@
-import { db } from './firebase-config';
+import { db } from './firebase-config.js';
 import { FieldValue } from 'firebase-admin/firestore';
-import type { ClassificationResult } from './classifier';
+import type { ClassificationResult } from './classifier.js';
 
 const COLLECTION = 'prompts';
 
