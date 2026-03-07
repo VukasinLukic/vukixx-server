@@ -1,6 +1,5 @@
 import { db } from './firebase-config.js';
 import { FieldValue } from 'firebase-admin/firestore';
-import type { ClassificationResult } from './classifier.js';
 
 const COLLECTION = 'prompts';
 
@@ -12,25 +11,32 @@ export interface PromptRecord {
   tags: string[];
   source: string;
   sourceUrl: string;
+  classified: boolean;
+  confidence: number;
   created: string;
 }
 
+/**
+ * Save prompt to Firestore WITHOUT AI classification.
+ * Desktop app will classify when it sees classified: false.
+ */
 export async function savePrompt(
   id: string,
   text: string,
   source: string,
   sourceUrl: string,
-  timestamp: string,
-  classification: ClassificationResult
+  timestamp: string
 ): Promise<PromptRecord> {
   const record: PromptRecord = {
     id,
     text,
-    title: classification.title,
-    category: classification.category,
-    tags: classification.tags,
+    title: '',           // Empty - desktop app will generate
+    category: 'other',   // Default - desktop app will classify
+    tags: [],            // Empty - desktop app will generate
     source,
     sourceUrl,
+    classified: false,   // 🚩 CRITICAL: tells desktop app to classify
+    confidence: 0,
     created: timestamp,
   };
 
@@ -41,6 +47,8 @@ export async function savePrompt(
     tags: record.tags,
     source: record.source,
     sourceUrl: record.sourceUrl,
+    classified: record.classified,
+    confidence: record.confidence,
     created: new Date(timestamp),
     updated: FieldValue.serverTimestamp(),
   });
@@ -60,11 +68,13 @@ export async function getRecentPrompts(limit = 10): Promise<PromptRecord[]> {
     return {
       id: doc.id,
       text: data.text,
-      title: data.title,
-      category: data.category,
+      title: data.title || '',
+      category: data.category || 'other',
       tags: data.tags ?? [],
       source: data.source,
       sourceUrl: data.sourceUrl,
+      classified: data.classified ?? false,
+      confidence: data.confidence ?? 0,
       created: data.created?.toDate?.()?.toISOString?.() ?? data.created,
     };
   });
@@ -78,11 +88,13 @@ export async function getPromptById(id: string): Promise<PromptRecord | null> {
   return {
     id: doc.id,
     text: data.text,
-    title: data.title,
-    category: data.category,
+    title: data.title || '',
+    category: data.category || 'other',
     tags: data.tags ?? [],
     source: data.source,
     sourceUrl: data.sourceUrl,
+    classified: data.classified ?? false,
+    confidence: data.confidence ?? 0,
     created: data.created?.toDate?.()?.toISOString?.() ?? data.created,
   };
 }
